@@ -32,7 +32,6 @@ function App() {
 		if (e.target.id == 'modalbg') {
 			setShowModal(false);
 			setShowPassword(false);
-			// setEmail('');
 			emailRef.current.value = ''
 			return;
 		} else {
